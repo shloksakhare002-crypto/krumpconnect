@@ -17,8 +17,12 @@ import {
   ArrowLeft,
   ExternalLink,
   Network,
+  Rss,
+  Image as ImageIcon,
 } from "lucide-react";
 import { KNSBadge } from "@/components/profile/KNSBadge";
+import { CreatePostDialog } from "@/components/fams/CreatePostDialog";
+import { PostCard } from "@/components/fams/PostCard";
 
 interface FamMember {
   id: string;
@@ -58,11 +62,15 @@ const FamDetail = () => {
   const { toast } = useToast();
   const [fam, setFam] = useState<Fam | null>(null);
   const [members, setMembers] = useState<FamMember[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBigHomie, setIsBigHomie] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFamData();
+    loadPosts();
   }, [slug]);
 
   const fetchFamData = async () => {
@@ -105,17 +113,19 @@ const FamDetail = () => {
       if (membersError) throw membersError;
       setMembers(membersData || []);
 
-      // Check if current user is Big Homie
+      // Check if current user is Big Homie or member
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("id")
           .eq("user_id", user.id)
           .single();
 
-        if (profile && profile.id === famData.big_homie_id) {
-          setIsBigHomie(true);
+        if (profileData) {
+          setCurrentProfileId(profileData.id);
+          setIsBigHomie(famData.big_homie_id === profileData.id);
+          setIsMember(membersData.some(m => m.profile_id === profileData.id));
         }
       }
     } catch (error: any) {
@@ -127,6 +137,37 @@ const FamDetail = () => {
       navigate("/fams");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPosts = async () => {
+    try {
+      const { data: famData } = await supabase
+        .from("fams")
+        .select("id")
+        .eq("slug", slug)
+        .single();
+
+      if (!famData) return;
+
+      const { data, error } = await supabase
+        .from("fam_posts")
+        .select(`
+          *,
+          author:profiles!fam_posts_author_id_fkey(
+            display_name,
+            krump_name,
+            profile_picture_url
+          )
+        `)
+        .eq("fam_id", famData.id)
+        .order("pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error: any) {
+      console.error("Error loading posts:", error);
     }
   };
 
@@ -253,8 +294,14 @@ const FamDetail = () => {
                 <Network className="h-4 w-4 mr-2" />
                 Family Tree
               </TabsTrigger>
-              <TabsTrigger value="news">News & Updates</TabsTrigger>
-              <TabsTrigger value="showcase">Showcase</TabsTrigger>
+              <TabsTrigger value="news">
+                <Rss className="h-4 w-4 mr-2" />
+                News ({posts.length})
+              </TabsTrigger>
+              <TabsTrigger value="showcase">
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Showcase
+              </TabsTrigger>
             </TabsList>
 
             {/* Members Tab */}
@@ -367,15 +414,38 @@ const FamDetail = () => {
             </TabsContent>
 
             {/* News Tab */}
-            <TabsContent value="news">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center text-muted-foreground py-12">
-                    <p>News feed coming soon</p>
-                    <p className="text-sm mt-2">Fam members will be able to post updates and announcements</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="news" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Fam News & Updates</h3>
+                {(isBigHomie || isMember) && currentProfileId && (
+                  <CreatePostDialog
+                    famId={fam.id}
+                    authorId={currentProfileId}
+                    onPostCreated={loadPosts}
+                  />
+                )}
+              </div>
+
+              {posts.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Rss className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No posts yet</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {isBigHomie || isMember
+                        ? "Be the first to share an update with the Fam!"
+                        : "Check back later for news and updates from this Fam"
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {posts.map((post) => (
+                    <PostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* Showcase Tab */}
@@ -383,8 +453,11 @@ const FamDetail = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center text-muted-foreground py-12">
-                    <p>Showcase gallery coming soon</p>
-                    <p className="text-sm mt-2">Display videos, images, and NFTs from fam members</p>
+                    <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Video NFT Showcase coming soon</p>
+                    <p className="text-sm mt-2">
+                      Display minted Video NFTs and media from fam members
+                    </p>
                   </div>
                 </CardContent>
               </Card>
