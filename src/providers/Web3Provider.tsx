@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
-import { config } from '@/config/web3';
+import { config, REOWN_PROJECT_ID } from '@/config/web3';
 import '@rainbow-me/rainbowkit/styles.css';
 
 const queryClient = new QueryClient();
@@ -12,6 +12,10 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
+          appInfo={{
+            appName: 'Krump India Connect',
+            learnMoreUrl: 'https://krumpindia.com',
+          }}
           theme={darkTheme({
             accentColor: 'hsl(189, 94%, 55%)',
             accentColorForeground: 'hsl(222, 47%, 5%)',

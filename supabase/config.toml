@@ -1,1 +1,4 @@
 project_id = "ztoumoeflymbpictghby"
+
+[functions.upload-to-pinata]
+verify_jwt = false
