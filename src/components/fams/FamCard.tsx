@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, MapPin, Target, UserPlus, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { KNSBadge } from "@/components/profile/KNSBadge";
 
 interface Fam {
   id: string;
@@ -85,7 +86,12 @@ export const FamCard = ({ fam }: FamCardProps) => {
       <CardContent className="space-y-3">
         <div className="p-3 bg-muted rounded-lg">
           <p className="text-xs text-muted-foreground mb-1">Big Homie</p>
-          <p className="font-semibold">{bigHomieName}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold">{bigHomieName}</p>
+            {fam.big_homie?.krump_name && (
+              <KNSBadge krumpName={fam.big_homie.krump_name} size="sm" />
+            )}
+          </div>
           <div className="flex items-center gap-4 mt-2 text-sm">
             <div>
               <span className="font-bold text-primary">{fam.member_count}</span>

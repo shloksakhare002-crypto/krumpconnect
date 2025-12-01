@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Network,
 } from "lucide-react";
+import { KNSBadge } from "@/components/profile/KNSBadge";
 
 interface FamMember {
   id: string;
@@ -271,10 +272,15 @@ const FamDetail = () => {
                         {fam.big_homie.display_name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-bold text-lg">
-                        {fam.big_homie.krump_name || fam.big_homie.display_name}
-                      </p>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <p className="font-bold text-lg">
+                          {fam.big_homie.krump_name || fam.big_homie.display_name}
+                        </p>
+                        {fam.big_homie.krump_name && (
+                          <KNSBadge krumpName={fam.big_homie.krump_name} size="sm" />
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">Founder & Leader</p>
                     </div>
                   </div>
@@ -301,9 +307,14 @@ const FamDetail = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold truncate">
-                              {member.profile.krump_name || member.profile.display_name}
-                            </p>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <p className="font-semibold truncate">
+                                {member.profile.krump_name || member.profile.display_name}
+                              </p>
+                              {member.profile.krump_name && (
+                                <KNSBadge krumpName={member.profile.krump_name} size="sm" />
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">{member.profile.rank}</p>
                           </div>
                         </div>
