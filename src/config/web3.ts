@@ -47,6 +47,9 @@ export const STORY_CONTRACTS = {
   },
 };
 
+// Reown (WalletConnect) Configuration
+export const REOWN_PROJECT_ID = 'd71d98f21f23bb75f09882c426d16600';
+
 export const config = createConfig({
   chains: [storyTestnet, storyMainnet],
   transports: {
