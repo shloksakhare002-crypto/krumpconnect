@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { WorldIDVerification } from "@/components/WorldIDVerification";
 import { KNSRegistration } from "@/components/profile/KNSRegistration";
+import { ProfilePictureUpload } from "@/components/profile/ProfilePictureUpload";
 
 const Profile = () => {
   const { address, isConnected } = useAccount();
@@ -43,9 +44,8 @@ const Profile = () => {
     call_out_status: "labbin",
   });
 
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>("");
-  const [uploading, setUploading] = useState(false);
+  const [profilePictureIpfs, setProfilePictureIpfs] = useState<string>("");
   const [hasProfile, setHasProfile] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [worldIdVerified, setWorldIdVerified] = useState(false);
@@ -87,6 +87,7 @@ const Profile = () => {
           call_out_status: data.call_out_status || "labbin",
         });
         setProfilePictureUrl(data.profile_picture_url || "");
+        setProfilePictureIpfs(data.profile_picture_ipfs || "");
         setWorldIdVerified(data.world_id_verified || false);
       }
     };
@@ -105,40 +106,9 @@ const Profile = () => {
     );
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
-    }
-  };
-
-  const handleUploadPicture = async () => {
-    if (!profilePicture || !user) return;
-
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", profilePicture);
-
-      const { data, error } = await supabase.functions.invoke("upload-to-pinata", {
-        body: formData,
-      });
-
-      if (error) throw error;
-
-      setProfilePictureUrl(data.gateway_url);
-      toast({
-        title: "Success",
-        description: "Profile picture uploaded to IPFS",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Upload Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
+  const handleProfilePictureUpload = (ipfsData: { url: string; ipfs: string }) => {
+    setProfilePictureUrl(ipfsData.url);
+    setProfilePictureIpfs(ipfsData.ipfs);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,6 +140,7 @@ const Profile = () => {
         user_id: user.id,
         wallet_address: address,
         profile_picture_url: profilePictureUrl || null,
+        profile_picture_ipfs: profilePictureIpfs || null,
       };
 
       if (hasProfile && profileId) {
@@ -274,44 +245,11 @@ const Profile = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Profile Picture Upload */}
-                    <div className="space-y-2">
-                      <Label>Profile Picture</Label>
-                      <div className="flex items-center gap-4">
-                        {profilePictureUrl && (
-                          <img
-                            src={profilePictureUrl}
-                            alt="Profile"
-                            className="w-24 h-24 rounded-full object-cover"
-                          />
-                        )}
-                        <div className="flex-1 space-y-2">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                          />
-                          <Button
-                            type="button"
-                            onClick={handleUploadPicture}
-                            disabled={!profilePicture || uploading}
-                            variant="outline"
-                            size="sm"
-                          >
-                            {uploading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Uploading...
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="mr-2 h-4 w-4" />
-                                Upload to IPFS
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <ProfilePictureUpload
+                      currentUrl={profilePictureUrl}
+                      onUploadSuccess={handleProfilePictureUpload}
+                      displayName={formData.display_name}
+                    />
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
