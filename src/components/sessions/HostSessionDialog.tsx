@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, MapPin } from "lucide-react";
+import { sessionSchema } from "@/lib/validations";
 
 interface HostSessionDialogProps {
   onSessionCreated: () => void;
@@ -37,6 +38,26 @@ export const HostSessionDialog = ({ onSessionCreated, currentLocation }: HostSes
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = sessionSchema.safeParse({
+      name: formData.name,
+      description: formData.description,
+      location_name: formData.location_name,
+      rules: formData.rules,
+      duration_minutes: parseInt(formData.duration_minutes),
+      max_participants: formData.max_participants ? parseInt(formData.max_participants) : undefined,
+    });
+    
+    if (!validation.success) {
+      toast({
+        title: "Invalid input",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
