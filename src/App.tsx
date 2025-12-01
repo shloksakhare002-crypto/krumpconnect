@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Sessions from "./pages/Sessions";
 import Fams from "./pages/Fams";
+import FamDetail from "./pages/FamDetail";
 import Events from "./pages/Events";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/fams" element={<Fams />} />
+          <Route path="/fams/:slug" element={<FamDetail />} />
           <Route path="/events" element={<Events />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
