@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authSchema } from "@/lib/validations";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -28,9 +29,21 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate inputs
+    const result = authSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast({
+        title: "Validation Error",
+        description: result.error.errors[0].message,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: result.data.email,
+      password: result.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/profile`,
       },
@@ -58,9 +71,21 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate inputs
+    const result = authSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast({
+        title: "Validation Error",
+        description: result.error.errors[0].message,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: result.data.email,
+      password: result.data.password,
     });
 
     if (error) {
@@ -146,7 +171,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

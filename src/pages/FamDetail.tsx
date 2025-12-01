@@ -17,14 +17,8 @@ import {
   ArrowLeft,
   ExternalLink,
   Network,
-  Rss,
-  Image as ImageIcon,
 } from "lucide-react";
 import { KNSBadge } from "@/components/profile/KNSBadge";
-import { CreatePostDialog } from "@/components/fams/CreatePostDialog";
-import { PostCard } from "@/components/fams/PostCard";
-import { MintVideoNFTDialog } from "@/components/story/MintVideoNFTDialog";
-import { VideoNFTCard } from "@/components/story/VideoNFTCard";
 
 interface FamMember {
   id: string;
@@ -64,21 +58,13 @@ const FamDetail = () => {
   const { toast } = useToast();
   const [fam, setFam] = useState<Fam | null>(null);
   const [members, setMembers] = useState<FamMember[]>([]);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [videoNFTs, setVideoNFTs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingNFTs, setLoadingNFTs] = useState(false);
   const [isBigHomie, setIsBigHomie] = useState(false);
   const [isMember, setIsMember] = useState(false);
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFamData();
-    loadPosts();
-    if (fam) {
-      loadVideoNFTs();
-    }
-  }, [slug, fam?.id]);
+  }, [slug]);
 
   const fetchFamData = async () => {
     try {
@@ -130,7 +116,6 @@ const FamDetail = () => {
           .single();
 
         if (profileData) {
-          setCurrentProfileId(profileData.id);
           setIsBigHomie(famData.big_homie_id === profileData.id);
           setIsMember(membersData.some(m => m.profile_id === profileData.id));
         }
@@ -144,37 +129,6 @@ const FamDetail = () => {
       navigate("/fams");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadPosts = async () => {
-    try {
-      const { data: famData } = await supabase
-        .from("fams")
-        .select("id")
-        .eq("slug", slug)
-        .single();
-
-      if (!famData) return;
-
-      const { data, error } = await supabase
-        .from("fam_posts")
-        .select(`
-          *,
-          author:profiles!fam_posts_author_id_fkey(
-            display_name,
-            krump_name,
-            profile_picture_url
-          )
-        `)
-        .eq("fam_id", famData.id)
-        .order("pinned", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error: any) {
-      console.error("Error loading posts:", error);
     }
   };
 
@@ -200,32 +154,6 @@ const FamDetail = () => {
         );
       default:
         return null;
-    }
-  };
-
-  const loadVideoNFTs = async () => {
-    if (!fam) return;
-    
-    setLoadingNFTs(true);
-    try {
-      const { data, error } = await supabase
-        .from("video_nfts")
-        .select(`
-          *,
-          creator:profiles!video_nfts_creator_id_fkey(
-            display_name,
-            krump_name
-          )
-        `)
-        .eq("fam_id", fam.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setVideoNFTs(data || []);
-    } catch (error: any) {
-      console.error("Error loading video NFTs:", error);
-    } finally {
-      setLoadingNFTs(false);
     }
   };
 
@@ -326,14 +254,6 @@ const FamDetail = () => {
               <TabsTrigger value="lineage">
                 <Network className="h-4 w-4 mr-2" />
                 Family Tree
-              </TabsTrigger>
-              <TabsTrigger value="news">
-                <Rss className="h-4 w-4 mr-2" />
-                News ({posts.length})
-              </TabsTrigger>
-              <TabsTrigger value="showcase">
-                <ImageIcon className="h-4 w-4 mr-2" />
-                Showcase
               </TabsTrigger>
             </TabsList>
 
@@ -444,85 +364,6 @@ const FamDetail = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* News Tab */}
-            <TabsContent value="news" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Fam News & Updates</h3>
-                {(isBigHomie || isMember) && currentProfileId && (
-                  <CreatePostDialog
-                    famId={fam.id}
-                    authorId={currentProfileId}
-                    onPostCreated={loadPosts}
-                  />
-                )}
-              </div>
-
-              {posts.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Rss className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No posts yet</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {isBigHomie || isMember
-                        ? "Be the first to share an update with the Fam!"
-                        : "Check back later for news and updates from this Fam"
-                      }
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {posts.map((post) => (
-                    <PostCard key={post.id} post={post} />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Showcase Tab */}
-            <TabsContent value="showcase" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Video NFT Gallery</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Fam performances minted on Story Protocol
-                  </p>
-                </div>
-                {(isBigHomie || isMember) && (
-                  <MintVideoNFTDialog
-                    onMinted={loadVideoNFTs}
-                    famId={fam.id}
-                    famName={fam.name}
-                  />
-                )}
-              </div>
-
-              {loadingNFTs ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                </div>
-              ) : videoNFTs.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No Video NFTs yet</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {isBigHomie || isMember
-                        ? "Mint your first Krump performance video as an NFT!"
-                        : "Check back later for minted videos from this Fam"
-                      }
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {videoNFTs.map((nft) => (
-                    <VideoNFTCard key={nft.id} nft={nft} />
-                  ))}
-                </div>
-              )}
             </TabsContent>
           </Tabs>
         </div>
