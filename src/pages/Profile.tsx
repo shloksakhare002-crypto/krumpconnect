@@ -89,6 +89,16 @@ const Profile = () => {
         setProfilePictureUrl(data.profile_picture_url || "");
         setProfilePictureIpfs(data.profile_picture_ipfs || "");
         setWorldIdVerified(data.world_id_verified || false);
+
+        // Load selected style tags
+        const { data: profileTags } = await supabase
+          .from("profile_style_tags")
+          .select("style_tag_id")
+          .eq("profile_id", data.id);
+        
+        if (profileTags) {
+          setSelectedStyles(profileTags.map(t => t.style_tag_id));
+        }
       }
     };
 
@@ -152,6 +162,23 @@ const Profile = () => {
 
         if (error) throw error;
 
+        // Update style tags
+        await supabase
+          .from("profile_style_tags")
+          .delete()
+          .eq("profile_id", profileId);
+
+        if (selectedStyles.length > 0) {
+          const styleTags = selectedStyles.map(tagId => ({
+            profile_id: profileId,
+            style_tag_id: tagId
+          }));
+          
+          await supabase
+            .from("profile_style_tags")
+            .insert(styleTags);
+        }
+
         toast({
           title: "Success",
           description: "Profile updated successfully",
@@ -167,6 +194,19 @@ const Profile = () => {
         if (error) throw error;
 
         setProfileId(data.id);
+
+        // Save style tags for new profile
+        if (selectedStyles.length > 0) {
+          const styleTags = selectedStyles.map(tagId => ({
+            profile_id: data.id,
+            style_tag_id: tagId
+          }));
+          
+          await supabase
+            .from("profile_style_tags")
+            .insert(styleTags);
+        }
+
         toast({
           title: "Success",
           description: "Profile created successfully",
