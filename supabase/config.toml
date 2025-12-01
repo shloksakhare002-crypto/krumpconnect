@@ -1,4 +1,3 @@
 project_id = "ztoumoeflymbpictghby"
 
-[functions.upload-to-pinata]
-verify_jwt = false
+# JWT verification enabled for security - only authenticated users can upload
