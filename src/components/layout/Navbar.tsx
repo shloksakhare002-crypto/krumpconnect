@@ -8,6 +8,7 @@ import { storyTestnet, storyMainnet } from "@/config/web3";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { NotificationBell } from "./NotificationBell";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,6 +59,7 @@ const Navbar = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4">
+            {user && <NotificationBell />}
             <Select value={chain?.id?.toString()} onValueChange={handleNetworkChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select Network" />
