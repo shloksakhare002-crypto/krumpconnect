@@ -370,6 +370,64 @@ export type Database = {
           },
         ]
       }
+      fam_posts: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          fam_id: string
+          id: string
+          media_ipfs: string | null
+          media_url: string | null
+          post_type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          fam_id: string
+          id?: string
+          media_ipfs?: string | null
+          media_url?: string | null
+          post_type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          fam_id?: string
+          id?: string
+          media_ipfs?: string | null
+          media_url?: string | null
+          post_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fam_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fam_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fam_posts_fam_id_fkey"
+            columns: ["fam_id"]
+            isOneToOne: false
+            referencedRelation: "fams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fams: {
         Row: {
           audition_details: string | null

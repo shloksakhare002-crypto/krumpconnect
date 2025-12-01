@@ -17,10 +17,15 @@ import {
   ArrowLeft,
   ExternalLink,
   Network,
+  MessageSquare,
+  Image as ImageIcon,
 } from "lucide-react";
 import { KNSBadge } from "@/components/profile/KNSBadge";
 import { FamChallengeDialog } from "@/components/fams/FamChallengeDialog";
 import { RecruitmentManagement } from "@/components/fams/RecruitmentManagement";
+import { CreateFamPostDialog } from "@/components/fams/CreateFamPostDialog";
+import { FamPostsList } from "@/components/fams/FamPostsList";
+import { FamGallery } from "@/components/fams/FamGallery";
 
 interface FamMember {
   id: string;
@@ -63,6 +68,8 @@ const FamDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isBigHomie, setIsBigHomie] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [currentProfileId, setCurrentProfileId] = useState<string | undefined>();
+  const [postsRefreshKey, setPostsRefreshKey] = useState(0);
 
   useEffect(() => {
     fetchFamData();
@@ -118,6 +125,7 @@ const FamDetail = () => {
           .single();
 
         if (profileData) {
+          setCurrentProfileId(profileData.id);
           setIsBigHomie(famData.big_homie_id === profileData.id);
           setIsMember(membersData.some(m => m.profile_id === profileData.id));
         }
@@ -255,8 +263,16 @@ const FamDetail = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="members" className="space-y-6">
-            <TabsList>
+          <Tabs defaultValue="feed" className="space-y-6">
+            <TabsList className="flex-wrap h-auto">
+              <TabsTrigger value="feed">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                News Feed
+              </TabsTrigger>
+              <TabsTrigger value="gallery">
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Gallery
+              </TabsTrigger>
               <TabsTrigger value="members">
                 <Users className="h-4 w-4 mr-2" />
                 Members ({members.length})
@@ -272,6 +288,41 @@ const FamDetail = () => {
                 </TabsTrigger>
               )}
             </TabsList>
+
+            {/* News Feed Tab */}
+            <TabsContent value="feed" className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Fam News Feed</CardTitle>
+                  {isMember && (
+                    <CreateFamPostDialog
+                      famId={fam.id}
+                      onPostCreated={() => setPostsRefreshKey(prev => prev + 1)}
+                    />
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <FamPostsList
+                    key={postsRefreshKey}
+                    famId={fam.id}
+                    currentUserId={currentProfileId}
+                    isBigHomie={isBigHomie}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Gallery Tab */}
+            <TabsContent value="gallery">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Showcase Gallery</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FamGallery key={postsRefreshKey} famId={fam.id} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* Members Tab */}
             <TabsContent value="members" className="space-y-6">
