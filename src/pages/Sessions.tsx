@@ -272,7 +272,7 @@ const Sessions = () => {
                 />
               )}
 
-              {filteredSessions.map((session) => (
+              {filteredSessions.length > 0 && filteredSessions.map((session) => (
                 <SessionMarker
                   key={session.id}
                   session={session}
