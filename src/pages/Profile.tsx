@@ -17,6 +17,7 @@ import { profileSchema } from "@/lib/validations";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { WorldIDVerification } from "@/components/WorldIDVerification";
+import { KNSRegistration } from "@/components/profile/KNSRegistration";
 
 const Profile = () => {
   const { address, isConnected } = useAccount();
@@ -475,12 +476,20 @@ const Profile = () => {
                       <ul className="text-sm text-muted-foreground space-y-1">
                         <li>• Host sessions</li>
                         <li>• Submit events</li>
+                        <li>• Register Krump Name (KNS)</li>
                         <li>• Send battle challenges</li>
                         <li>• Create Fam pages</li>
                       </ul>
                     </div>
                   </CardContent>
                 </Card>
+
+                <KNSRegistration
+                  profileId={profileId || ""}
+                  currentKrumpName={formData.krump_name}
+                  worldIdVerified={worldIdVerified}
+                  onNameRegistered={(name) => setFormData({ ...formData, krump_name: name })}
+                />
 
                 <Card>
                   <CardHeader>
