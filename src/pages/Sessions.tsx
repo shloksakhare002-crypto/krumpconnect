@@ -260,7 +260,6 @@ const Sessions = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               
-              {/* User's current location */}
               {currentLocation && (
                 <Circle
                   center={[currentLocation.lat, currentLocation.lng]}
@@ -273,7 +272,6 @@ const Sessions = () => {
                 />
               )}
 
-              {/* Session markers */}
               {filteredSessions.map((session) => (
                 <SessionMarker
                   key={session.id}
@@ -283,7 +281,7 @@ const Sessions = () => {
                 />
               ))}
 
-              <MapControls currentLocation={currentLocation} />
+              {currentLocation && <MapControls currentLocation={currentLocation} />}
             </MapContainer>
           </div>
 
