@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
 import { Crosshair } from "lucide-react";
@@ -18,18 +17,21 @@ export const MapControls = ({ currentLocation }: MapControlsProps) => {
     }
   };
 
+  if (!currentLocation) return null;
+
   return (
-    <div className="absolute bottom-20 right-4 z-[1000] flex flex-col gap-2">
-      <Button
-        size="icon"
-        variant="secondary"
-        onClick={centerOnUser}
-        disabled={!currentLocation}
-        className="shadow-glow"
-        title="Center on my location"
-      >
-        <Crosshair className="h-5 w-5" />
-      </Button>
+    <div className="leaflet-top leaflet-right" style={{ position: 'absolute', top: '80px', right: '10px', zIndex: 1000 }}>
+      <div className="leaflet-control">
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={centerOnUser}
+          className="shadow-glow"
+          title="Center on my location"
+        >
+          <Crosshair className="h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 };
