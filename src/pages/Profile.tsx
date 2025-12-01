@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { WorldIDVerification } from "@/components/WorldIDVerification";
 import { KNSRegistration } from "@/components/profile/KNSRegistration";
 import { ProfilePictureUpload } from "@/components/profile/ProfilePictureUpload";
+import { BannerUpload } from "@/components/profile/BannerUpload";
 
 const Profile = () => {
   const { address, isConnected } = useAccount();
@@ -46,6 +47,8 @@ const Profile = () => {
 
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>("");
   const [profilePictureIpfs, setProfilePictureIpfs] = useState<string>("");
+  const [bannerUrl, setBannerUrl] = useState<string>("");
+  const [bannerIpfs, setBannerIpfs] = useState<string>("");
   const [hasProfile, setHasProfile] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [worldIdVerified, setWorldIdVerified] = useState(false);
@@ -88,6 +91,8 @@ const Profile = () => {
         });
         setProfilePictureUrl(data.profile_picture_url || "");
         setProfilePictureIpfs(data.profile_picture_ipfs || "");
+        setBannerUrl(data.banner_url || "");
+        setBannerIpfs(data.banner_ipfs || "");
         setWorldIdVerified(data.world_id_verified || false);
 
         // Load selected style tags
@@ -121,6 +126,11 @@ const Profile = () => {
     setProfilePictureIpfs(ipfsData.ipfs);
   };
 
+  const handleBannerUpload = (ipfsData: { url: string; ipfs: string }) => {
+    setBannerUrl(ipfsData.url);
+    setBannerIpfs(ipfsData.ipfs);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -151,6 +161,8 @@ const Profile = () => {
         wallet_address: address,
         profile_picture_url: profilePictureUrl || null,
         profile_picture_ipfs: profilePictureIpfs || null,
+        banner_url: bannerUrl || null,
+        banner_ipfs: bannerIpfs || null,
       };
 
       if (hasProfile && profileId) {
@@ -284,6 +296,13 @@ const Profile = () => {
                     <CardTitle>Basic Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Banner Upload */}
+                    <BannerUpload
+                      currentUrl={bannerUrl}
+                      onUploadSuccess={handleBannerUpload}
+                      displayName={formData.display_name}
+                    />
+
                     {/* Profile Picture Upload */}
                     <ProfilePictureUpload
                       currentUrl={profilePictureUrl}

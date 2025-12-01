@@ -19,6 +19,8 @@ import {
   Network,
 } from "lucide-react";
 import { KNSBadge } from "@/components/profile/KNSBadge";
+import { FamChallengeDialog } from "@/components/fams/FamChallengeDialog";
+import { RecruitmentManagement } from "@/components/fams/RecruitmentManagement";
 
 interface FamMember {
   id: string;
@@ -232,15 +234,23 @@ const FamDetail = () => {
                   Back
                 </Button>
                 {isBigHomie && (
-                  <Button variant="web3">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Manage
+                  <Button variant="outline" onClick={() => navigate("/fam-challenges")}>
+                    <Swords className="h-4 w-4 mr-2" />
+                    View Challenges
                   </Button>
                 )}
-                <Button variant="default">
-                  <Swords className="h-4 w-4 mr-2" />
-                  Challenge
-                </Button>
+                {isMember && fam && (
+                  <FamChallengeDialog
+                    currentFamId={fam.id}
+                    currentFamName={fam.name}
+                    onChallengeCreated={() => {
+                      toast({
+                        title: "Challenge Sent!",
+                        description: "Your fam challenge has been issued",
+                      });
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -255,6 +265,12 @@ const FamDetail = () => {
                 <Network className="h-4 w-4 mr-2" />
                 Family Tree
               </TabsTrigger>
+              {isBigHomie && (
+                <TabsTrigger value="manage">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Members Tab */}
@@ -365,6 +381,19 @@ const FamDetail = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Manage Tab - Big Homie Only */}
+            {isBigHomie && fam && (
+              <TabsContent value="manage">
+                <RecruitmentManagement
+                  famId={fam.id}
+                  currentStatus={fam.recruitment_status as any}
+                  currentAuditionDetails={fam.audition_details}
+                  currentAuditionLink={fam.audition_link}
+                  onUpdate={fetchFamData}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </main>
