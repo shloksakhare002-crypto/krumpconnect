@@ -788,6 +788,97 @@ export type Database = {
         }
         Relationships: []
       }
+      video_nfts: {
+        Row: {
+          attributes: Json | null
+          chain_id: number
+          created_at: string
+          creator_id: string
+          description: string | null
+          duration_seconds: number | null
+          fam_id: string | null
+          id: string
+          ip_asset_id: string | null
+          license_terms: string | null
+          metadata_json: Json | null
+          minted_at: string | null
+          nft_contract_address: string | null
+          nft_token_id: string | null
+          thumbnail_ipfs: string | null
+          thumbnail_url: string | null
+          title: string
+          transaction_hash: string | null
+          video_ipfs: string
+          video_url: string
+        }
+        Insert: {
+          attributes?: Json | null
+          chain_id: number
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          duration_seconds?: number | null
+          fam_id?: string | null
+          id?: string
+          ip_asset_id?: string | null
+          license_terms?: string | null
+          metadata_json?: Json | null
+          minted_at?: string | null
+          nft_contract_address?: string | null
+          nft_token_id?: string | null
+          thumbnail_ipfs?: string | null
+          thumbnail_url?: string | null
+          title: string
+          transaction_hash?: string | null
+          video_ipfs: string
+          video_url: string
+        }
+        Update: {
+          attributes?: Json | null
+          chain_id?: number
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          duration_seconds?: number | null
+          fam_id?: string | null
+          id?: string
+          ip_asset_id?: string | null
+          license_terms?: string | null
+          metadata_json?: Json | null
+          minted_at?: string | null
+          nft_contract_address?: string | null
+          nft_token_id?: string | null
+          thumbnail_ipfs?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          transaction_hash?: string | null
+          video_ipfs?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_nfts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_nfts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_nfts_fam_id_fkey"
+            columns: ["fam_id"]
+            isOneToOne: false
+            referencedRelation: "fams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_profiles: {
