@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+// Auth validation schema
+export const authSchema = z.object({
+  email: z.string()
+    .email('Invalid email address')
+    .trim()
+    .toLowerCase()
+    .max(255, 'Email must be less than 255 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password must be less than 100 characters'),
+});
+
+export type AuthFormData = z.infer<typeof authSchema>;
+
 // Profile validation schema
 export const profileSchema = z.object({
   display_name: z.string()
