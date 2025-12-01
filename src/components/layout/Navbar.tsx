@@ -48,6 +48,9 @@ const Navbar = () => {
             <Link to="/events" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Events
             </Link>
+            <Link to="/battles" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Battles
+            </Link>
             <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Profile
             </Link>
@@ -108,6 +111,13 @@ const Navbar = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               Events
+            </Link>
+            <Link
+              to="/battles"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Battles
             </Link>
             <Link
               to="/profile"

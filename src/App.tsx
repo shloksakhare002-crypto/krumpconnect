@@ -10,6 +10,7 @@ import Sessions from "./pages/Sessions";
 import Fams from "./pages/Fams";
 import FamDetail from "./pages/FamDetail";
 import Events from "./pages/Events";
+import Battles from "./pages/Battles";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/fams" element={<Fams />} />
           <Route path="/fams/:slug" element={<FamDetail />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/battles" element={<Battles />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
