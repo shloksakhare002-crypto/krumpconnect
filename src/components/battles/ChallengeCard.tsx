@@ -129,93 +129,50 @@ export const ChallengeCard = ({ challenge, type, onAction, currentProfileId }: C
 
     setReportingResult(true);
     try {
-      // Update challenge status
-      const { error: challengeError } = await supabase
-        .from("battle_challenges")
-        .update({ status: "completed" })
-        .eq("id", challenge.id);
+      // Check if opponent has already reported
+      const { data: opponentResult } = await supabase
+        .from("battle_results")
+        .select("result")
+        .eq("challenge_id", challenge.id)
+        .eq("reporter_id", opponent.id)
+        .single();
 
-      if (challengeError) throw challengeError;
+      // Submit this user's result to battle_results table
+      const { error: insertError } = await supabase
+        .from("battle_results")
+        .insert({
+          challenge_id: challenge.id,
+          reporter_id: currentProfileId,
+          result: result,
+        });
 
-      // Update battle records for both dancers
-      if (result === "won") {
-        // Fetch current stats
-        const { data: currentData } = await supabase
-          .from("profiles")
-          .select("battle_wins")
-          .eq("id", currentProfileId)
-          .single();
-        
-        const { data: opponentData } = await supabase
-          .from("profiles")
-          .select("battle_losses")
-          .eq("id", opponent.id)
-          .single();
+      if (insertError) throw insertError;
 
-        // Update with incremented values
-        await supabase
-          .from("profiles")
-          .update({ battle_wins: (currentData?.battle_wins || 0) + 1 })
-          .eq("id", currentProfileId);
-        
-        await supabase
-          .from("profiles")
-          .update({ battle_losses: (opponentData?.battle_losses || 0) + 1 })
-          .eq("id", opponent.id);
-      } else if (result === "lost") {
-        // Fetch current stats
-        const { data: currentData } = await supabase
-          .from("profiles")
-          .select("battle_losses")
-          .eq("id", currentProfileId)
-          .single();
-        
-        const { data: opponentData } = await supabase
-          .from("profiles")
-          .select("battle_wins")
-          .eq("id", opponent.id)
-          .single();
+      // Check if results match for confirmation message
+      if (opponentResult) {
+        const resultsMatch = 
+          (result === "draw" && opponentResult.result === "draw") ||
+          (result === "won" && opponentResult.result === "lost") ||
+          (result === "lost" && opponentResult.result === "won");
 
-        // Update with incremented values
-        await supabase
-          .from("profiles")
-          .update({ battle_losses: (currentData?.battle_losses || 0) + 1 })
-          .eq("id", currentProfileId);
-        
-        await supabase
-          .from("profiles")
-          .update({ battle_wins: (opponentData?.battle_wins || 0) + 1 })
-          .eq("id", opponent.id);
-      } else if (result === "draw") {
-        // Fetch current stats
-        const { data: currentData } = await supabase
-          .from("profiles")
-          .select("battle_draws")
-          .eq("id", currentProfileId)
-          .single();
-        
-        const { data: opponentData } = await supabase
-          .from("profiles")
-          .select("battle_draws")
-          .eq("id", opponent.id)
-          .single();
-
-        // Update with incremented values
-        await supabase
-          .from("profiles")
-          .update({ battle_draws: (currentData?.battle_draws || 0) + 1 })
-          .eq("id", currentProfileId);
-        
-        await supabase
-          .from("profiles")
-          .update({ battle_draws: (opponentData?.battle_draws || 0) + 1 })
-          .eq("id", opponent.id);
+        if (resultsMatch) {
+          toast({
+            title: "Result Confirmed! 🏆",
+            description: "Both participants agree. Battle records updated!",
+          });
+        } else {
+          toast({
+            title: "Result Mismatch! ⚠️",
+            description: "Results don't match. Contact your opponent to resolve.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Result Submitted ⏳",
+          description: "Waiting for opponent to confirm the result",
+        });
       }
-
-      toast({
-        title: "Result Recorded! 🏆",
-        description: "Battle result has been recorded on-chain",
-      });
 
       setResult("");
       onAction();

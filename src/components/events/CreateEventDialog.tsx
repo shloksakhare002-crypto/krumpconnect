@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToPinata } from "@/lib/pinata";
 import { Plus, Upload, Image as ImageIcon } from "lucide-react";
+import { eventSchema } from "@/lib/validations";
 
 interface CreateEventDialogProps {
   onEventCreated: () => void;
@@ -82,6 +83,25 @@ export const CreateEventDialog = ({ onEventCreated }: CreateEventDialogProps) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = eventSchema.safeParse({
+      name: formData.name,
+      description: formData.description,
+      location_name: formData.location_name,
+      city: formData.city,
+      registration_link: formData.registration_link,
+    });
+    
+    if (!validation.success) {
+      toast({
+        title: "Invalid input",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {

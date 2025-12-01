@@ -14,6 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ratingSchema } from "@/lib/validations";
 
 interface RateSessionDialogProps {
   sessionId: string;
@@ -31,6 +32,23 @@ export const RateSessionDialog = ({ sessionId, sessionName, onRated }: RateSessi
   const { toast } = useToast();
 
   const handleSubmit = async () => {
+    // Validate input
+    const validation = ratingSchema.safeParse({
+      comments,
+      floor_quality: floorQuality[0],
+      safety: safety[0],
+      equipment: equipment[0],
+    });
+
+    if (!validation.success) {
+      toast({
+        title: "Invalid input",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();

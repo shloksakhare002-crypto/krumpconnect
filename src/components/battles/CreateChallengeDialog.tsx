@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Swords, Loader2 } from "lucide-react";
 import { KNSBadge } from "@/components/profile/KNSBadge";
+import { battleChallengeSchema } from "@/lib/validations";
 
 interface CreateChallengeDialogProps {
   onChallengeCreated: () => void;
@@ -42,6 +43,17 @@ export const CreateChallengeDialog = ({
       toast({
         title: "Select a dancer",
         description: "Please select who you want to challenge",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input
+    const validation = battleChallengeSchema.safeParse({ message: formData.message });
+    if (!validation.success) {
+      toast({
+        title: "Invalid input",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;

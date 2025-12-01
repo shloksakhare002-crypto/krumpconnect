@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Swords } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { famChallengeSchema } from "@/lib/validations";
 
 interface Fam {
   id: string;
@@ -66,10 +67,21 @@ export const FamChallengeDialog = ({
   };
 
   const handleSubmit = async () => {
-    if (!selectedFamId || !challengeText.trim()) {
+    if (!selectedFamId) {
       toast({
         title: "Missing information",
-        description: "Please select a fam and write a challenge message",
+        description: "Please select a fam to challenge",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input
+    const validation = famChallengeSchema.safeParse({ challenge_text: challengeText });
+    if (!validation.success) {
+      toast({
+        title: "Invalid input",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;

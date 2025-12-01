@@ -80,6 +80,52 @@ export type Database = {
           },
         ]
       }
+      battle_results: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          id: string
+          reporter_id: string
+          result: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          id?: string
+          reporter_id: string
+          result: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          id?: string
+          reporter_id?: string
+          result?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_results_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "battle_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_results_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_results_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_registrations: {
         Row: {
           category: string | null
