@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Navbar from "@/components/layout/Navbar";
 import { MapPin, Users, Calendar, Shield, Zap, Globe } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -26,7 +29,9 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" asChild>
-                <Link to="/profile">Create Profile</Link>
+                <Link to={user ? "/profile" : "/auth"}>
+                  {user ? "View Your Profile" : "Get Started"}
+                </Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <Link to="/sessions">Explore Sessions</Link>
@@ -123,7 +128,9 @@ const Index = () => {
                 Connect your wallet, verify your identity, and start building your legacy.
               </p>
               <Button variant="web3" size="lg" asChild>
-                <Link to="/profile">Get Started</Link>
+                <Link to={user ? "/profile" : "/auth"}>
+                  {user ? "Go to Dashboard" : "Get Started"}
+                </Link>
               </Button>
             </div>
           </Card>
