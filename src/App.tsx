@@ -6,7 +6,9 @@ import { Web3Provider } from "./providers/Web3Provider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Sessions from "./pages/Sessions";
+import ManageSessions from "./pages/ManageSessions";
 import Fams from "./pages/Fams";
 import FamDetail from "./pages/FamDetail";
 import Events from "./pages/Events";
@@ -23,7 +25,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:profileId" element={<PublicProfile />} />
           <Route path="/sessions" element={<Sessions />} />
+          <Route path="/manage-sessions" element={<ManageSessions />} />
           <Route path="/fams" element={<Fams />} />
           <Route path="/fams/:slug" element={<FamDetail />} />
           <Route path="/events" element={<Events />} />

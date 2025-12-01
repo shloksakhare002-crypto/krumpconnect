@@ -43,6 +43,9 @@ const Navbar = () => {
             <Link to="/sessions" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Sessions
             </Link>
+            <Link to="/manage-sessions" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Manage
+            </Link>
             <Link to="/fams" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Fams
             </Link>
@@ -99,6 +102,13 @@ const Navbar = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               Sessions
+            </Link>
+            <Link
+              to="/manage-sessions"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Manage
             </Link>
             <Link
               to="/fams"
