@@ -143,3 +143,14 @@ export const famChallengeSchema = z.object({
 });
 
 export type FamChallengeFormData = z.infer<typeof famChallengeSchema>;
+
+// Fam post validation schema
+export const famPostSchema = z.object({
+  content: z.string()
+    .min(1, 'Post content is required')
+    .max(2000, 'Post content must be less than 2000 characters')
+    .trim(),
+  post_type: z.enum(['general', 'announcement', 'achievement', 'media', 'event']),
+});
+
+export type FamPostFormData = z.infer<typeof famPostSchema>;
