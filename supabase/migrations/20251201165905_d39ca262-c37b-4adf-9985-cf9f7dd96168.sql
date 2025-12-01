@@ -1,0 +1,1 @@
+ALTER TABLE public.fam_posts DISABLE ROW LEVEL SECURITY;
