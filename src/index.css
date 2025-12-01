@@ -79,4 +79,17 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Leaflet popup customization */
+  .leaflet-popup-content-wrapper {
+    @apply bg-card text-foreground border border-border rounded-lg shadow-glow;
+  }
+
+  .leaflet-popup-tip {
+    @apply bg-card border-border;
+  }
+
+  .session-popup .leaflet-popup-content {
+    margin: 0 !important;
+  }
 }
