@@ -13,6 +13,7 @@ import { Upload, ShieldCheck, Wallet, Swords, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { profileSchema } from "@/lib/validations";
 
 const Profile = () => {
   const { address, isConnected } = useAccount();
@@ -51,6 +52,17 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form data
+    const result = profileSchema.safeParse(formData);
+    if (!result.success) {
+      toast({
+        title: "Validation Error",
+        description: result.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Note: Full profile creation requires authentication implementation
     toast({
