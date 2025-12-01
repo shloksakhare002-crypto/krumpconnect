@@ -1,66 +1,84 @@
+import { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, Plus, MapPin, Swords, Target, UserPlus } from "lucide-react";
+import { Swords, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { CreateFamDialog } from "@/components/fams/CreateFamDialog";
+import { FamCard } from "@/components/fams/FamCard";
+
+interface Fam {
+  id: string;
+  name: string;
+  slug: string;
+  city: string | null;
+  bio: string | null;
+  logo_url: string | null;
+  recruitment_status: string;
+  audition_link: string | null;
+  big_homie: {
+    display_name: string;
+    krump_name: string | null;
+  } | null;
+  member_count: number;
+}
 
 const Fams = () => {
-  const exampleFams = [
-    {
-      id: 1,
-      name: "Mumbai Krump Warriors",
-      city: "Mumbai",
-      bigHomie: "OG Street King",
-      members: 12,
-      generation: 3,
-      description: "Bringing raw energy to the streets of Mumbai since 2020",
-      recruitmentStatus: "scouting",
-      auditionLink: null,
-    },
-    {
-      id: 2,
-      name: "Delhi Street Legends",
-      city: "Delhi",
-      bigHomie: "Lil Thunder",
-      members: 8,
-      generation: 2,
-      description: "Pioneering the Krump movement in North India",
-      recruitmentStatus: "auditions_open",
-      auditionLink: "details-here",
-    },
-    {
-      id: 3,
-      name: "Bangalore Battle Squad",
-      city: "Bangalore",
-      bigHomie: "Big Homie Beast",
-      members: 15,
-      generation: 4,
-      description: "Tech city dancers with unmatched intensity",
-      recruitmentStatus: "closed_circle",
-      auditionLink: null,
-    },
-  ];
+  const [fams, setFams] = useState<Fam[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const challenges = [
-    {
-      id: 1,
-      from: "Mumbai Krump Warriors",
-      to: "Delhi Street Legends",
-      format: "5v5",
-      message: "We want smoke at IKF! 5v5 battle."
-    }
-  ];
+  useEffect(() => {
+    fetchFams();
+  }, []);
 
-  const getRecruitmentBadge = (status: string) => {
-    switch (status) {
-      case "closed_circle":
-        return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500">🔒 Closed Circle</Badge>;
-      case "scouting":
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500">👀 Scouting</Badge>;
-      case "auditions_open":
-        return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500">✅ Auditions Open</Badge>;
-      default:
-        return null;
+  const fetchFams = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("fams")
+        .select(`
+          id,
+          name,
+          slug,
+          city,
+          bio,
+          logo_url,
+          recruitment_status,
+          audition_link,
+          big_homie:profiles!fams_big_homie_id_fkey(
+            display_name,
+            krump_name
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Get member counts for each fam
+      const famsWithCounts = await Promise.all(
+        (data || []).map(async (fam) => {
+          const { count } = await supabase
+            .from("fam_members")
+            .select("*", { count: "exact", head: true })
+            .eq("fam_id", fam.id);
+
+          return {
+            ...fam,
+            member_count: count || 0,
+          };
+        })
+      );
+
+      setFams(famsWithCounts);
+    } catch (error: any) {
+      toast({
+        title: "Error loading fams",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,10 +98,7 @@ const Fams = () => {
                   Digital Headquarters - Discover families and their lineage
                 </p>
               </div>
-              <Button variant="web3" size="lg">
-                <Plus className="mr-2 h-5 w-5" />
-                Create Fam Page
-              </Button>
+              <CreateFamDialog onFamCreated={fetchFams} />
             </div>
           </div>
         </div>
@@ -99,99 +114,34 @@ const Fams = () => {
               <CardDescription>Active Fam-to-Fam challenges</CardDescription>
             </CardHeader>
             <CardContent>
-              {challenges.map((challenge) => (
-                <div key={challenge.id} className="p-4 border border-border rounded-lg bg-gradient-card">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                      <p className="font-bold text-lg">
-                        <span className="text-primary">{challenge.from}</span>
-                        {" vs "}
-                        <span className="text-secondary">{challenge.to}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">{challenge.message}</p>
-                      <Badge className="mt-2">{challenge.format}</Badge>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      View Challenge
-                    </Button>
-                  </div>
-                </div>
-              ))}
+              <div className="text-center text-muted-foreground py-8">
+                <Swords className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No active challenges yet</p>
+                <p className="text-sm mt-2">Fams can challenge each other to battles here</p>
+              </div>
             </CardContent>
           </Card>
 
           {/* Fams Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {exampleFams.map((fam) => (
-              <Card key={fam.id} className="hover:shadow-glow transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="h-16 w-16 rounded-full bg-gradient-accent flex items-center justify-center">
-                      <Users className="h-8 w-8 text-background" />
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        {fam.city}
-                      </div>
-                      {getRecruitmentBadge(fam.recruitmentStatus)}
-                    </div>
-                  </div>
-                  
-                  <CardTitle>{fam.name}</CardTitle>
-                  <CardDescription>{fam.description}</CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-3">
-                  {/* Family Tree Info */}
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Big Homie</p>
-                    <p className="font-semibold">{fam.bigHomie}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm">
-                      <div>
-                        <span className="font-bold text-primary">{fam.members}</span>
-                        <span className="text-muted-foreground"> members</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-secondary">Gen {fam.generation}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Recruitment Board */}
-                  {fam.recruitmentStatus === "auditions_open" && (
-                    <div className="p-3 border-2 border-green-500/50 rounded-lg bg-green-500/5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <UserPlus className="h-4 w-4 text-green-500" />
-                        <span className="font-semibold text-sm">Auditions Open!</span>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Audition Details
-                      </Button>
-                    </div>
-                  )}
-
-                  {fam.recruitmentStatus === "scouting" && (
-                    <div className="p-3 border border-yellow-500/50 rounded-lg bg-yellow-500/5">
-                      <div className="flex items-center gap-2">
-                        <Target className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm">Looking for new talent</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      View Fam
-                    </Button>
-                    <Button variant="default" size="sm" className="flex-1">
-                      Challenge
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : fams.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No fams yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to create a Krump fam in your city!
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {fams.map((fam) => (
+                <FamCard key={fam.id} fam={fam} />
+              ))}
+            </div>
+          )}
 
           {/* Info Section */}
           <div className="mt-12 grid md:grid-cols-2 gap-6">
