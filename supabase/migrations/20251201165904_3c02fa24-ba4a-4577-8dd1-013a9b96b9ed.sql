@@ -1,0 +1,1 @@
+ALTER TABLE public.video_nfts DISABLE ROW LEVEL SECURITY;
