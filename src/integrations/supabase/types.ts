@@ -51,10 +51,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "battle_challenges_challenged_id_fkey"
+            columns: ["challenged_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "battle_challenges_challenger_id_fkey"
             columns: ["challenger_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_challenges_challenger_id_fkey"
+            columns: ["challenger_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -104,6 +118,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -184,6 +205,13 @@ export type Database = {
             columns: ["organizer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -274,10 +302,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fam_members_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fam_members_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fam_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -342,6 +384,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fams_big_homie_id_fkey"
+            columns: ["big_homie_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profile_style_tags: {
@@ -366,6 +415,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_style_tags_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -507,6 +563,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "session_ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "session_ratings_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -543,6 +606,13 @@ export type Database = {
             columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -627,6 +697,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sessions_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       style_tags: {
@@ -649,7 +726,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          banner_ipfs: string | null
+          banner_url: string | null
+          battle_draws: number | null
+          battle_losses: number | null
+          battle_wins: number | null
+          bio: string | null
+          call_out_status: Database["public"]["Enums"]["call_out_status"] | null
+          created_at: string | null
+          current_fam_id: string | null
+          display_name: string | null
+          id: string | null
+          krump_name: string | null
+          profile_picture_ipfs: string | null
+          profile_picture_url: string | null
+          rank: Database["public"]["Enums"]["krump_rank"] | null
+        }
+        Insert: {
+          banner_ipfs?: string | null
+          banner_url?: string | null
+          battle_draws?: number | null
+          battle_losses?: number | null
+          battle_wins?: number | null
+          bio?: string | null
+          call_out_status?:
+            | Database["public"]["Enums"]["call_out_status"]
+            | null
+          created_at?: string | null
+          current_fam_id?: string | null
+          display_name?: string | null
+          id?: string | null
+          krump_name?: string | null
+          profile_picture_ipfs?: string | null
+          profile_picture_url?: string | null
+          rank?: Database["public"]["Enums"]["krump_rank"] | null
+        }
+        Update: {
+          banner_ipfs?: string | null
+          banner_url?: string | null
+          battle_draws?: number | null
+          battle_losses?: number | null
+          battle_wins?: number | null
+          bio?: string | null
+          call_out_status?:
+            | Database["public"]["Enums"]["call_out_status"]
+            | null
+          created_at?: string | null
+          current_fam_id?: string | null
+          display_name?: string | null
+          id?: string | null
+          krump_name?: string | null
+          profile_picture_ipfs?: string | null
+          profile_picture_url?: string | null
+          rank?: Database["public"]["Enums"]["krump_rank"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_current_fam_id_fkey"
+            columns: ["current_fam_id"]
+            isOneToOne: false
+            referencedRelation: "fams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
