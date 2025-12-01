@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Web3Provider } from "./providers/Web3Provider";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Sessions from "./pages/Sessions";
 import Fams from "./pages/Fams";
@@ -18,6 +19,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/fams" element={<Fams />} />

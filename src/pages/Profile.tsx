@@ -9,35 +9,89 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Upload, ShieldCheck, Wallet, Swords, Trophy } from "lucide-react";
+import { Upload, ShieldCheck, Wallet, Swords, Trophy, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { profileSchema } from "@/lib/validations";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { WorldIDVerification } from "@/components/WorldIDVerification";
 
 const Profile = () => {
   const { address, isConnected } = useAccount();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [styleTags, setStyleTags] = useState<any[]>([]);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
-  
-  const [formData, setFormData] = useState({
-    krump_name: "",
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState<{
+    display_name: string;
+    krump_name: string;
+    bio: string;
+    city: string;
+    instagram_handle: string;
+    rank: "new_boot" | "young" | "jr" | "sr" | "og";
+    call_out_status: "labbin" | "ready_for_smoke";
+  }>({
     display_name: "",
-    rank: "new_boot",
+    krump_name: "",
     bio: "",
     city: "",
     instagram_handle: "",
+    rank: "new_boot",
     call_out_status: "labbin",
-    battle_wins: 0,
-    battle_losses: 0,
-    battle_draws: 0,
   });
+
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [worldIdVerified, setWorldIdVerified] = useState(false);
+  const [styleTags, setStyleTags] = useState<any[]>([]);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Redirect to auth if not logged in
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     loadStyleTags();
   }, []);
+
+  useEffect(() => {
+    // Load existing profile if available
+    const loadProfile = async () => {
+      if (!user || !address) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data) {
+        setHasProfile(true);
+        setProfileId(data.id);
+        setFormData({
+          display_name: data.display_name || "",
+          krump_name: data.krump_name || "",
+          bio: data.bio || "",
+          city: data.city || "",
+          instagram_handle: data.instagram_handle || "",
+          rank: data.rank || "new_boot",
+          call_out_status: data.call_out_status || "labbin",
+        });
+        setProfilePictureUrl(data.profile_picture_url || "");
+        setWorldIdVerified(data.world_id_verified || false);
+      }
+    };
+
+    loadProfile();
+  }, [user, address]);
 
   const loadStyleTags = async () => {
     const { data } = await supabase.from("style_tags").select("*");
@@ -50,9 +104,54 @@ const Profile = () => {
     );
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
+    }
+  };
+
+  const handleUploadPicture = async () => {
+    if (!profilePicture || !user) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", profilePicture);
+
+      const { data, error } = await supabase.functions.invoke("upload-to-pinata", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      setProfilePictureUrl(data.gateway_url);
+      toast({
+        title: "Success",
+        description: "Profile picture uploaded to IPFS",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!user || !address) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet and sign in",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate form data
     const result = profileSchema.safeParse(formData);
     if (!result.success) {
@@ -63,13 +162,69 @@ const Profile = () => {
       });
       return;
     }
-    
-    // Note: Full profile creation requires authentication implementation
+
+    try {
+      const profileData = {
+        ...formData,
+        user_id: user.id,
+        wallet_address: address,
+        profile_picture_url: profilePictureUrl || null,
+      };
+
+      if (hasProfile && profileId) {
+        // Update existing profile
+        const { error } = await supabase
+          .from("profiles")
+          .update(profileData)
+          .eq("id", profileId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+      } else {
+        // Create new profile
+        const { data, error } = await supabase
+          .from("profiles")
+          .insert([profileData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setProfileId(data.id);
+        toast({
+          title: "Success",
+          description: "Profile created successfully",
+        });
+        setHasProfile(true);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWorldIDSuccess = () => {
+    setWorldIdVerified(true);
     toast({
-      title: "Coming Soon!",
-      description: "Profile creation will be enabled once authentication is implemented.",
+      title: "Verified!",
+      description: "Your World ID has been verified successfully",
     });
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!isConnected) {
     return (
@@ -100,7 +255,7 @@ const Profile = () => {
         <div className="border-b border-border bg-card">
           <div className="container mx-auto px-4 py-8">
             <h1 className="text-4xl font-bold mb-2 bg-gradient-accent bg-clip-text text-transparent">
-              Create Your Krump Resume
+              {hasProfile ? "Edit Your Profile" : "Create Your Krump Resume"}
             </h1>
             <p className="text-muted-foreground">
               The Stat Sheet - Build credibility and establish your identity
@@ -117,6 +272,46 @@ const Profile = () => {
                     <CardTitle>Basic Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Profile Picture Upload */}
+                    <div className="space-y-2">
+                      <Label>Profile Picture</Label>
+                      <div className="flex items-center gap-4">
+                        {profilePictureUrl && (
+                          <img
+                            src={profilePictureUrl}
+                            alt="Profile"
+                            className="w-24 h-24 rounded-full object-cover"
+                          />
+                        )}
+                        <div className="flex-1 space-y-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleUploadPicture}
+                            disabled={!profilePicture || uploading}
+                            variant="outline"
+                            size="sm"
+                          >
+                            {uploading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Upload to IPFS
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="display-name">Display Name *</Label>
@@ -129,13 +324,12 @@ const Profile = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="krump-name">Krump Name *</Label>
+                        <Label htmlFor="krump-name">Krump Name</Label>
                         <Input
                           id="krump-name"
                           value={formData.krump_name}
                           onChange={(e) => setFormData({ ...formData, krump_name: e.target.value })}
                           placeholder="e.g., Lil Beast"
-                          required
                         />
                       </div>
                     </div>
@@ -145,7 +339,7 @@ const Profile = () => {
                         <Label htmlFor="rank">Rank / Status *</Label>
                         <Select
                           value={formData.rank}
-                          onValueChange={(value) => setFormData({ ...formData, rank: value })}
+                          onValueChange={(value) => setFormData({ ...formData, rank: value as any })}
                         >
                           <SelectTrigger id="rank">
                             <SelectValue />
@@ -190,50 +384,6 @@ const Profile = () => {
                         placeholder="Your Krump journey..."
                         rows={4}
                       />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-secondary" />
-                      Battle Record
-                    </CardTitle>
-                    <CardDescription>Manual input or verified record of your battles</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="wins">Wins</Label>
-                        <Input
-                          id="wins"
-                          type="number"
-                          min="0"
-                          value={formData.battle_wins}
-                          onChange={(e) => setFormData({ ...formData, battle_wins: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="losses">Losses</Label>
-                        <Input
-                          id="losses"
-                          type="number"
-                          min="0"
-                          value={formData.battle_losses}
-                          onChange={(e) => setFormData({ ...formData, battle_losses: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="draws">Draws</Label>
-                        <Input
-                          id="draws"
-                          type="number"
-                          min="0"
-                          value={formData.battle_draws}
-                          onChange={(e) => setFormData({ ...formData, battle_draws: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -306,12 +456,19 @@ const Profile = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Verify with World ID to unlock all features
-                    </p>
-                    <Button type="button" variant="outline" className="w-full">
-                      Verify with World ID
-                    </Button>
+                    {worldIdVerified ? (
+                      <div className="flex items-center gap-2 text-sm text-green-600">
+                        <div className="w-2 h-2 bg-green-600 rounded-full" />
+                        Verified Human
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground">
+                          Verify with World ID to unlock all features
+                        </p>
+                        <WorldIDVerification onSuccess={handleWorldIDSuccess} />
+                      </>
+                    )}
                     
                     <div className="pt-4 border-t border-border">
                       <h4 className="font-semibold mb-2">Unlock:</h4>
@@ -337,8 +494,8 @@ const Profile = () => {
                   </CardContent>
                 </Card>
 
-                <Button type="submit" disabled={loading} className="w-full" variant="web3" size="lg">
-                  {loading ? "Creating..." : "Create Profile"}
+                <Button type="submit" className="w-full" variant="web3" size="lg">
+                  {hasProfile ? "Update Profile" : "Create Profile"}
                 </Button>
               </div>
             </div>
