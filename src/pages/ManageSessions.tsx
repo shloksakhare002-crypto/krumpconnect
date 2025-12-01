@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Calendar, MapPin, Users, Check, X, Loader2, Trash2 } from "lucide-react";
+import { Calendar, MapPin, Users, Check, X, Loader2, Trash2, Star } from "lucide-react";
+import { RateSessionDialog } from "@/components/sessions/RateSessionDialog";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -54,6 +55,7 @@ const ManageSessions = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [mySessions, setMySessions] = useState<Session[]>([]);
+  const [pastSessions, setPastSessions] = useState<Session[]>([]);
   const [requests, setRequests] = useState<SessionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -94,6 +96,18 @@ const ManageSessions = () => {
 
       if (sessionsError) throw sessionsError;
       setMySessions(sessions || []);
+
+      // Load past sessions
+      const { data: past, error: pastError } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("host_id", profileData.id)
+        .lt("session_date", new Date().toISOString())
+        .order("session_date", { ascending: false })
+        .limit(20);
+
+      if (pastError) throw pastError;
+      setPastSessions(past || []);
 
       // Load pending requests for my sessions
       const sessionIds = sessions?.map(s => s.id) || [];
@@ -243,6 +257,10 @@ const ManageSessions = () => {
               <TabsTrigger value="sessions">
                 <Calendar className="h-4 w-4 mr-2" />
                 My Sessions ({mySessions.length})
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                <Star className="h-4 w-4 mr-2" />
+                Past Sessions
               </TabsTrigger>
             </TabsList>
 
@@ -411,6 +429,53 @@ const ManageSessions = () => {
                             Max {session.max_participants} participants
                           </div>
                         )}
+                        {session.description && (
+                          <p className="text-muted-foreground pt-2">{session.description}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+
+            {/* Past Sessions */}
+            <TabsContent value="past" className="space-y-4">
+              {pastSessions.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No past sessions</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                pastSessions.map((session) => (
+                  <Card key={session.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle>{session.name}</CardTitle>
+                          <CardDescription className="mt-2">
+                            {getSessionTypeBadge(session.session_type)}
+                          </CardDescription>
+                        </div>
+                        <RateSessionDialog
+                          sessionId={session.id}
+                          sessionName={session.name}
+                          onRated={loadData}
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          {format(new Date(session.session_date), "PPP 'at' p")}
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          {session.location_name}
+                        </div>
                         {session.description && (
                           <p className="text-muted-foreground pt-2">{session.description}</p>
                         )}

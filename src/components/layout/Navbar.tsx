@@ -55,6 +55,9 @@ const Navbar = () => {
             <Link to="/battles" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Battles
             </Link>
+            <Link to="/fam-challenges" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Fam Wars
+            </Link>
             <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Profile
             </Link>
@@ -130,6 +133,13 @@ const Navbar = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               Battles
+            </Link>
+            <Link
+              to="/fam-challenges"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Fam Wars
             </Link>
             <Link
               to="/profile"

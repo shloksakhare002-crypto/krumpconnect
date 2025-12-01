@@ -7,6 +7,7 @@ import { Calendar, MapPin, Users, Trophy, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEventDialog } from "@/components/events/CreateEventDialog";
+import { RegisterEventDialog } from "@/components/events/RegisterEventDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface Event {
@@ -258,15 +259,16 @@ const Events = () => {
                         </p>
                         
                         <div className="flex gap-2 mt-4">
-                          {event.registration_link ? (
-                            <Button variant="default" asChild>
+                          <RegisterEventDialog
+                            eventId={event.id}
+                            eventName={event.name}
+                            onRegistered={fetchEvents}
+                          />
+                          {event.registration_link && (
+                            <Button variant="outline" asChild>
                               <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
-                                Register Now
+                                External Link
                               </a>
-                            </Button>
-                          ) : (
-                            <Button variant="default" disabled>
-                              Registration Coming Soon
                             </Button>
                           )}
                         </div>
